@@ -50,3 +50,35 @@ list(
 
 
 ```
+
+## Row 2 
+
+# Sugar Rush: Does More Sugar Mean More Popular?
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(plotly)
+library(DT)
+library(fivethirtyeight)
+
+# sugarpercent is a 0-1 percentile, so convert to 0-100 for readability
+candy <- candy_rankings |>
+  mutate(sugar_pct = sugarpercent * 100,
+         price_pct = pricepercent * 100)
+
+most_sugary  <- candy |> slice_max(sugar_pct, n = 1, with_ties = FALSE)
+least_sugary <- candy |> slice_min(sugar_pct, n = 1, with_ties = FALSE)
+sugar_cor    <- cor(candy$sugar_pct, candy$winpercent)
+
+```
+
+```{r}
+#| content: valuebox
+#| title: "Most sugary candy"
+list(icon = "cup-straw",
+     color = "danger",
+     value = paste0(most_sugary$competitorname, " (", round(most_sugary$sugar_pct), "th pct)"))
+
+```
