@@ -51,7 +51,7 @@ list(
 
 ```
 
-## Row 2 
+##  
 
 # Sugar Rush: Does More Sugar Mean More Popular?
 
@@ -74,11 +74,83 @@ sugar_cor    <- cor(candy$sugar_pct, candy$winpercent)
 
 ```
 
+# The Big Picture
+
+### {Height=22%}
+
 ```{r}
 #| content: valuebox
 #| title: "Most sugary candy"
 list(icon = "cup-straw",
      color = "danger",
      value = paste0(most_sugary$competitorname, " (", round(most_sugary$sugar_pct), "th pct)"))
+
+```
+
+```{r}
+#| content: valuebox
+#| title: "Least sugary candy"
+list(icon = "heart",
+     color = "success",
+     value = paste0(least_sugary$competitorname, " (", round(least_sugary$sugar_pct), "th pct)"))
+
+```
+
+```{r}
+#| content: valuebox
+#| title: "Correlation: sugar vs. win %"
+list(icon = "graph-up",
+     color = "primary",
+     value = round(sugar_cor, 2))
+
+```
+
+### Row 1
+
+### {Height=58%}
+
+```{r}
+#| title: "Sugar vs. Popularity (hover for candy names)"
+
+candy <- candy |>
+  mutate(chocolate_label = if_else(chocolate, "Chocolate", "No chocolate"))
+
+p <- ggplot(candy, aes(x = sugar_pct, y = winpercent)) +
+  geom_point(aes(color = chocolate_label,
+                 text = paste0(competitorname,
+                               "<br>Sugar percentile: ", round(sugar_pct),
+                               "<br>Win %: ", round(winpercent, 1))),
+             size = 2.5, alpha = 0.8) +
+  geom_smooth(method = "lm", se = TRUE, color = "#4A148C", fill = "#CE93D8") +
+  scale_color_manual(values = c("Chocolate" = "#6D4C41", "No chocolate" = "#F06292"),
+                     name = "") +
+  labs(x = "Sugar percentile (within this candy set)",
+       y = "Win % in head-to-head matchups") +
+  theme_minimal(base_size = 13)
+
+ggplotly(p, tooltip = "text")
+```
+
+### Row 2 {height=20%}
+
+::: {.card title="My takeaway"}
+Write your 2-3 sentence answer here: does more sugar mean more popular? Use the trend line and the correlation value to back it up.
+:::
+
+```{r}
+#| title: "All candies, sorted by sugar"
+candy |>
+  select(Candy = competitorname,
+         `Sugar percentile` = sugar_pct,
+         `Win %` = winpercent,
+         `Price percentile` = price_pct) |>
+  arrange(desc(`Sugar percentile`)) |>
+  datatable(rownames = FALSE, options = list(pageLength = 10)) |>
+  formatRound(c("Sugar percentile", "Win %", "Price percentile"), digits = 1) |>
+  formatStyle("Win %",
+              background = styleColorBar(range(candy$winpercent), "#F8BBD0"),
+              backgroundSize = "100% 80%",
+              backgroundRepeat = "no-repeat",
+              backgroundPosition = "center")
 
 ```
