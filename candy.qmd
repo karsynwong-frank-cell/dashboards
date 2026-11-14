@@ -51,7 +51,7 @@ list(
 
 ```
 
-##  
+## 
 
 # Sugar Rush: Does More Sugar Mean More Popular?
 
@@ -76,7 +76,7 @@ sugar_cor    <- cor(candy$sugar_pct, candy$winpercent)
 
 # The Big Picture
 
-### {Height=22%}
+###  {Height="22%"}
 
 ```{r}
 #| content: valuebox
@@ -107,7 +107,7 @@ list(icon = "graph-up",
 
 ### Row 1
 
-### {Height=58%}
+###  {Height="58%"}
 
 ```{r}
 #| title: "Sugar vs. Popularity (hover for candy names)"
@@ -131,7 +131,7 @@ p <- ggplot(candy, aes(x = sugar_pct, y = winpercent)) +
 ggplotly(p, tooltip = "text")
 ```
 
-### Row 2 {height=20%}
+### Row 2 {height="20%"}
 
 ::: {.card title="My takeaway"}
 Write your 2-3 sentence answer here: does more sugar mean more popular? Use the trend line and the correlation value to back it up.

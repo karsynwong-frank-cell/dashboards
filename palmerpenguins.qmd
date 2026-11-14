@@ -1,5 +1,5 @@
 ---
-title: "Palmer Penguins Dashboard"
+title: "Palmer Penguins Dashboard" 
 author: "Lehiwa Wong-Frank"
 format: dashboard
 ---
