@@ -5,21 +5,110 @@ format:
   dashboard:
     theme: cosmo
     orientation: rows
+    scrolling: true
 ---
 
 ```{r}
 library(tidyverse)
 library(plotly)
+```
 
-# Load raw CSV and clean it inside R
+```{r}
+songs <- read_csv("/Users/lehiwawong-frank/Desktop/dashboards/songs_normalize.csv", show_col_types = FALSE)
+```
+
+```{r}
 songs <- read_csv("songs_normalize.csv", show_col_types = FALSE) |>
-  distinct() |>                                      # Remove 59 exact duplicates (2000 -> 1941)
-  filter(year >= 2000, year <= 2019) |>              # Keep strictly 2000–2019 (1899 unique tracks)
+  distinct() |>
+  filter(year >= 2000, year <= 2019) |>
   mutate(
-    duration_min = round(duration_ms / 60000, 2),    # Convert ms to minutes
-    genre = na_if(genre, "set()"),                   # Fix missing-value placeholder
+    duration_min = round(duration_ms / 60000, 2),
+    genre = na_if(genre, "set()"),
     genre = replace_na(genre, "Unknown"),
     primary_genre = str_trim(str_split_i(genre, ",", 1)),
     is_zero_popularity = popularity == 0
   )
+
+yearly_trends <- songs |>
+  group_by(year) |>
+  summarise(
+    avg_danceability = mean(danceability, na.rm = TRUE),
+    avg_energy = mean(energy, na.rm = TRUE),
+    avg_tempo = mean(tempo, na.rm = TRUE),
+    avg_duration = mean(duration_min, na.rm = TRUE),
+    song_count = n()
+  )
+
+```
+
+### Row #1 {height=160px}
+
+```{r}
+#| content: valuebox
+#| title: "Total Hit Songs (2000–2019)"
+list(icon = "music-note-beamed", color = "primary", value = paste0(format(nrow(songs), big.mark = ","), " songs"))
+
+```
+
+```{r}
+#| content: valuebox
+#| title: "Average Song Length"
+list(icon = "clock", color = "info", value = paste0(round(mean(songs$duration_min), 2), " min"))
+
+```
+
+```{r}
+#| content: valuebox
+#| title: "Average Tempo"
+list(icon = "speedometer2", color = "success", value = paste0(round(mean(songs$tempo), 0), " BPM"))
+
+```
+
+### Row #2{height=450px} Danceability & Energy Over Time
+
+```{r}
+p1 <- yearly_trends |>
+  pivot_longer(cols = c(avg_danceability, avg_energy), names_to = "metric", values_to = "score") |>
+  mutate(metric = recode(metric, avg_danceability = "Danceability", avg_energy = "Energy")) |>
+  ggplot(aes(x = year, y = score, color = metric)) +
+  geom_line(linewidth = 1.1) +
+  geom_point(size = 2) +
+  labs(x = "Year", y = "Score (0–1)", color = "Feature") +
+  theme_minimal()
+
+ggplotly(p1)
+
+```
+
+### Row #3 Track Length (Minutes) Over Time
+
+```{r}
+p2 <- ggplot(yearly_trends, aes(x = year, y = avg_duration)) +
+  geom_line(color = "#1DB954", linewidth = 1.1) +
+  geom_point(color = "#1DB954", size = 2) +
+  labs(x = "Year", y = "Average Duration (Minutes)") +
+  theme_minimal()
+
+ggplotly(p2)
+
+```
+
+### Row #4 {height=450px} Tempo by Top Genres
+
+```{r}
+top_genres <- songs |>
+  count(primary_genre, sort = TRUE) |>
+  slice_head(n = 6) |>
+  pull(primary_genre)
+
+p3 <- songs |>
+  filter(primary_genre %in% top_genres) |>
+  ggplot(aes(x = reorder(primary_genre, tempo, median), y = tempo, fill = primary_genre)) +
+  geom_boxplot(show.legend = FALSE) +
+  coord_flip() +
+  labs(x = "Primary Genre", y = "Tempo (BPM)") +
+  theme_minimal()
+
+ggplotly(p3)
+
 ```
