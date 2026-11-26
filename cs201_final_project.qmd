@@ -1,0 +1,25 @@
+---
+title: "Spotify"
+author: "Lehiwa Wong-Frank"
+format:
+  dashboard:
+    theme: cosmo
+    orientation: rows
+---
+
+```{r}
+library(tidyverse)
+library(plotly)
+
+# Load raw CSV and clean it inside R
+songs <- read_csv("songs_normalize.csv", show_col_types = FALSE) |>
+  distinct() |>                                      # Remove 59 exact duplicates (2000 -> 1941)
+  filter(year >= 2000, year <= 2019) |>              # Keep strictly 2000–2019 (1899 unique tracks)
+  mutate(
+    duration_min = round(duration_ms / 60000, 2),    # Convert ms to minutes
+    genre = na_if(genre, "set()"),                   # Fix missing-value placeholder
+    genre = replace_na(genre, "Unknown"),
+    primary_genre = str_trim(str_split_i(genre, ",", 1)),
+    is_zero_popularity = popularity == 0
+  )
+```
